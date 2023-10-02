@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface Dao <K, E> {
-    E save(E ticket);
+    E save(E entity);
     boolean update(E id);
     boolean delete(K id);
     Optional<E> findById(K id);
