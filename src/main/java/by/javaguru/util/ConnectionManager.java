@@ -25,6 +25,7 @@ public class ConnectionManager {
                                 PropertiesUtil.get(URL_KEY),
                                 PropertiesUtil.get(USERNAME_KEY),
                                 PropertiesUtil.get(PASSWORD_KEY));
+                        connection.setSchema("flights");
                         logger.info("Connection opened. Schema: {}", connection.getSchema());
                     }
                 }
