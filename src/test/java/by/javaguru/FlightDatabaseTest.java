@@ -2,6 +2,8 @@ package by.javaguru;
 
 import by.javaguru.dao.FlightDao;
 import by.javaguru.dao.TicketDao;
+import by.javaguru.dto.FlightUpdateInfo;
+import by.javaguru.dto.TicketUpdateInfo;
 import by.javaguru.entity.Flight;
 import by.javaguru.entity.Ticket;
 import by.javaguru.util.ConnectionManager;
@@ -46,8 +48,7 @@ class FlightDatabaseTest {
     class FlightDaoTest {
         @Test
         public void saveAndDeleteTicket() {
-            Flight flight = generateFlight();
-            Flight savedFlight = flightDao.save(flight);
+            Flight savedFlight = flightDao.save(generateFlight());
             Long id = savedFlight.getId();
 
             assertNotNull(id);
@@ -56,8 +57,7 @@ class FlightDatabaseTest {
 
         @Test
         public void updateTicket() {
-            Flight flight = generateFlight();
-            Flight savedFlight = flightDao.save(flight);
+            Flight savedFlight = flightDao.save(generateFlight());
             long flightId = savedFlight.getId();
 
             String newStatus = "CANCELLED";
@@ -81,6 +81,43 @@ class FlightDatabaseTest {
             assertEquals(9, tickets.size());
         }
 
+//        @Test
+//        public void updateFlightId() {
+//            Flight flight = flightDao.save(generateFlight());
+//            long newId = 100L;
+//            boolean isUpdated = flightDao.updateFlightId(flight, newId);
+//
+//            assertTrue(isUpdated);
+//
+//            Optional<Flight> flightWithNewId = flightDao.findById(newId);
+//            assertEquals(flight, flightWithNewId);
+//        }
+
+        @Test
+        public void updateDataByFlightId() {
+            int newCost = 1200;
+            TicketUpdateInfo ticketUpdateInfo = new TicketUpdateInfo(newCost);
+            FlightUpdateInfo flightUpdateInfo = FlightUpdateInfo.builder()
+                    .flightNo("NW111")
+                    .aircraftId(3L)
+                    .status("STATUS")
+                    .build();
+
+            long flightId = 9L;
+            flightDao.updateDataByFlightId(flightId, flightUpdateInfo, ticketUpdateInfo);
+            Flight flight = flightDao.findById(flightId).get();
+
+            List<Ticket> ticketsByFlightId = ticketDao.findTicketsByFlightId(flightId);
+
+            for (Ticket ticket : ticketsByFlightId) {
+                assertEquals(newCost, ticket.getCost());
+            }
+
+            assertEquals("NW111", flight.getFlightNo());
+            assertEquals(3L, flight.getAircraftId());
+            assertEquals("STATUS", flight.getStatus());
+        }
+
         private static Flight generateFlight() {
             return Flight.builder()
                     .flightNo("MP3000")
@@ -98,8 +135,7 @@ class FlightDatabaseTest {
     class TicketDaoTest {
         @Test
         public void saveAndDeleteTicket() {
-            Ticket ticket = generateTicket();
-            Ticket savedTicket = ticketDao.save(ticket);
+            Ticket savedTicket = ticketDao.save(generateTicket());
             Long id = savedTicket.getId();
             assertNotNull(id);
             assertTrue(ticketDao.delete(id));
@@ -107,8 +143,7 @@ class FlightDatabaseTest {
 
         @Test
         public void updateTicket() {
-            Ticket ticket = generateTicket();
-            Ticket savedTicket = ticketDao.save(ticket);
+            Ticket savedTicket = ticketDao.save(generateTicket());
             long ticketId = savedTicket.getId();
 
             int newCost = 1500;

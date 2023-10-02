@@ -1,6 +1,8 @@
 package by.javaguru.dao;
 
+import by.javaguru.dto.TicketUpdateInfo;
 import by.javaguru.entity.Ticket;
+import by.javaguru.dto.TicketFilter;
 import by.javaguru.exception.DaoException;
 import by.javaguru.util.ConnectionManager;
 import org.slf4j.Logger;
@@ -16,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 public class TicketDao implements Dao<Long, Ticket> {
@@ -66,7 +69,11 @@ public class TicketDao implements Dao<Long, Ticket> {
     private static final String FIND_BY_ID_SQL =
             FIND_ALL_SQL + "WHERE ID = ?";
 
-    private TicketDao() {}
+    private static final String FIND_BY_FLIGHT_ID_SQL =
+            FIND_ALL_SQL + "WHERE flight_id = ?";
+
+    private TicketDao() {
+    }
 
     public static TicketDao getInstance() {
         return INSTANCE;
@@ -167,6 +174,73 @@ public class TicketDao implements Dao<Long, Ticket> {
             throw new DaoException(e);
         }
     }
+
+    private static final String FILTERED_UPDATE_SQL = """
+            UPDATE ticket
+            SET %s
+            WHERE %s
+            """;
+
+    public int updateTickets(TicketFilter ticketFilter, TicketUpdateInfo updateInfo) {
+        Map<String, Object> whereParams = new HashMap<>();
+        Map<String, Object> setParams = new HashMap<>();
+
+        if (ticketFilter.getPassportNo() != null) {
+            whereParams.put("passport_no", "'" + ticketFilter.getPassportNo() + "'");
+        }
+
+        if (ticketFilter.getPassengerName() != null) {
+            whereParams.put("passenger_name", "'" + ticketFilter.getPassengerName() + "'");
+        }
+
+        if (ticketFilter.getFlightId() != null) {
+            whereParams.put("flight_id", ticketFilter.getFlightId());
+        }
+
+        if (ticketFilter.getSeatNo() != null) {
+            whereParams.put("seat_no", "'" + ticketFilter.getSeatNo() + "'");
+        }
+
+        if (ticketFilter.getCost() != null) {
+            whereParams.put("cost", ticketFilter.getCost());
+        }
+
+        setParams.put("cost", updateInfo.getCost());
+        String setSql = setParams.entrySet()
+                .stream().map(e -> e.getKey() + " = " + e.getValue())
+                .collect(Collectors.joining(" , "));
+
+        String whereSql = whereParams.entrySet()
+                .stream().map(e -> e.getKey() + " = " + e.getValue())
+                .collect(Collectors.joining(" AND "));
+
+        try (PreparedStatement statement = connection.prepareStatement(FILTERED_UPDATE_SQL.formatted(setSql, whereSql))) {
+            int i = statement.executeUpdate();
+            return i;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // TODO: refactor with TicketFilter
+    public List<Ticket> findTicketsByFlightId(Long flightId) {
+        try (PreparedStatement statement = connection.prepareStatement(FIND_BY_FLIGHT_ID_SQL)) {
+            logger.info("Starting to find all tickets with flight_id = {}", flightId);
+            List<Ticket> tickets = new ArrayList<>();
+            statement.setLong(1, flightId);
+            ResultSet result = statement.executeQuery();
+
+            while (result.next()) {
+                tickets.add(readTicket(result));
+            }
+            logger.debug("Found {} tickets", tickets.size());
+
+            return tickets;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     public List<String> findMostCommonNames(int limit) {
         try (PreparedStatement statement = connection.prepareStatement(COMMON_NAMES_SQL)) {

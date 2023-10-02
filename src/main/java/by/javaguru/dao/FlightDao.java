@@ -1,5 +1,8 @@
 package by.javaguru.dao;
 
+import by.javaguru.dto.FlightUpdateInfo;
+import by.javaguru.dto.TicketFilter;
+import by.javaguru.dto.TicketUpdateInfo;
 import by.javaguru.entity.Flight;
 import by.javaguru.exception.DaoException;
 import by.javaguru.util.ConnectionManager;
@@ -13,11 +16,17 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static java.lang.String.*;
 
 public class FlightDao implements Dao<Long, Flight> {
     private static final FlightDao INSTANCE = new FlightDao();
+    private static final TicketDao ticketDao = TicketDao.getInstance();
     private static final Connection connection = ConnectionManager.open();
     private static final Logger logger = LoggerFactory.getLogger(FlightDao.class);
     private static final String INSERT_SQL = """
@@ -49,6 +58,12 @@ public class FlightDao implements Dao<Long, Flight> {
             """;
     private static final String FIND_BY_ID_SQL =
             FIND_ALL_SQL + "WHERE ID = ?";
+
+    private static final String CHANGE_ID_SQL = """
+            UPDATE flight
+            SET id = ?
+            WHERE id = ?
+            """;
 
     private FlightDao() {
     }
@@ -156,13 +171,61 @@ public class FlightDao implements Dao<Long, Flight> {
         }
     }
 
+    private static final String FILTERED_UPDATE_SQL = """
+           UPDATE flight
+           SET %s
+           WHERE id = ?
+            """;
+
+    public boolean updateDataByFlightId(Long id, FlightUpdateInfo flightInfo, TicketUpdateInfo ticketInfo) {
+        Map<String, Object> parameters = new HashMap<>();
+
+        if (flightInfo.getFlightNo() != null) {
+            parameters.put("flight_no", "'" + flightInfo.getFlightNo() + "'");
+        }
+
+        if (flightInfo.getAircraftId() != null) {
+            parameters.put("aircraft_id", flightInfo.getAircraftId());
+        }
+
+        if (flightInfo.getStatus() != null) {
+            parameters.put("status", "'" + flightInfo.getStatus()+ "'");
+        }
+
+        String setSql = parameters.entrySet().stream()
+                .map(e -> format("%s = %s", e.getKey(), e.getValue()))
+                .collect(Collectors.joining(", "));
+
+        try (PreparedStatement statement = connection.prepareStatement(FILTERED_UPDATE_SQL.formatted(setSql))) {
+            connection.setAutoCommit(false);
+
+            statement.setLong(1, id);
+            int countRecords = statement.executeUpdate();
+
+            TicketFilter ticketFilter = TicketFilter.builder().flightId(id).build();
+
+            ticketDao.updateTickets(ticketFilter, ticketInfo);
+
+            connection.commit();
+            return countRecords > 0;
+        } catch (SQLException e) {
+            try {
+                connection.rollback();
+            } catch (SQLException ex) {
+                throw new DaoException(ex);
+            }
+            throw new DaoException(e);
+        }
+    }
+
     private static Flight readFlight(ResultSet result) throws SQLException {
         return Flight.builder()
                 .id(result.getLong("id"))
+                .flightNo(result.getString("flight_no"))
                 .departureDate(result.getTimestamp("departure_date").toLocalDateTime())
                 .departureAirportCode(result.getString("departure_airport_code"))
                 .arrivalDate(result.getTimestamp("arrival_date").toLocalDateTime())
-                .departureAirportCode(result.getString("arrival_airport_code"))
+                .arrivalAirportCode(result.getString("arrival_airport_code"))
                 .aircraftId(result.getLong("aircraft_id"))
                 .status(result.getString("status"))
                 .build();
