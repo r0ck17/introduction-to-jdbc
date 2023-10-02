@@ -1,6 +1,7 @@
 package by.javaguru.dao;
 
 import by.javaguru.entity.Ticket;
+import by.javaguru.exception.DaoException;
 import by.javaguru.util.ConnectionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +64,7 @@ public class TicketDao implements Dao<Long, Ticket> {
 
             return ticket;
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new DaoException(e);
         }
     }
 
@@ -82,7 +83,7 @@ public class TicketDao implements Dao<Long, Ticket> {
 
             return statement.executeUpdate() > 0;
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new DaoException(e);
         }
     }
 
@@ -93,7 +94,7 @@ public class TicketDao implements Dao<Long, Ticket> {
             statement.setLong(1, id);
             return statement.executeUpdate() > 0;
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new DaoException(e);
         }
     }
 
@@ -112,7 +113,7 @@ public class TicketDao implements Dao<Long, Ticket> {
 
             return Optional.ofNullable(ticket);
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new DaoException(e);
         }
     }
 
@@ -130,7 +131,7 @@ public class TicketDao implements Dao<Long, Ticket> {
 
             return tickets;
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new DaoException(e);
         }
     }
 
