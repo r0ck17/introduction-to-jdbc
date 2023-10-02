@@ -1,9 +1,12 @@
 package by.javaguru.util;
 
+import lombok.experimental.UtilityClass;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+@UtilityClass
 public class PropertiesUtil {
     private static final Properties PROPERTIES = new Properties();
     private static final String PROPERTIES_FILE_NAME = "application.properties";
