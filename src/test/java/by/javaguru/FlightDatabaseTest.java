@@ -1,10 +1,16 @@
 package by.javaguru;
 
+import by.javaguru.dao.AircraftDao;
+import by.javaguru.dao.AirportDao;
 import by.javaguru.dao.FlightDao;
+import by.javaguru.dao.SeatDao;
 import by.javaguru.dao.TicketDao;
 import by.javaguru.dto.FlightUpdateInfo;
 import by.javaguru.dto.TicketUpdateInfo;
+import by.javaguru.entity.Aircraft;
+import by.javaguru.entity.Airport;
 import by.javaguru.entity.Flight;
+import by.javaguru.entity.Seat;
 import by.javaguru.entity.Ticket;
 import by.javaguru.util.ConnectionManager;
 import by.javaguru.util.SQLScriptRunner;
@@ -28,12 +34,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class FlightDatabaseTest {
     private static TicketDao ticketDao;
     private static FlightDao flightDao;
+    private static AirportDao airportDao;
+    private static SeatDao seatDao;
+    private static AircraftDao aircraftDao;
     private static final Connection connection = ConnectionManager.open();
 
     @BeforeEach
-    public void createDatabase() throws Exception {
+    public void init() throws Exception {
         ticketDao = TicketDao.getInstance();
         flightDao = FlightDao.getInstance();
+        airportDao = AirportDao.getInstance();
+        seatDao = SeatDao.getInstance();
+        aircraftDao = AircraftDao.getInstance();
+
         Path path = Path.of("src", "test", "resources", "create-database.sql").toAbsolutePath();
         SQLScriptRunner.execute(path.toString(), connection);
         connection.setSchema("flights_test");
@@ -71,7 +84,7 @@ class FlightDatabaseTest {
             savedFlight.setStatus(newStatus);
             savedFlight.setAircraftId(newAircraftId);
 
-            flightDao.update(savedFlight);
+            flightDao.update(flightId, savedFlight);
 
             Optional<Flight> optionalFlight = flightDao.findById(flightId);
             assertNotNull(optionalFlight);
@@ -145,7 +158,7 @@ class FlightDatabaseTest {
 
             savedTicket.setCost(newCost);
             savedTicket.setPassengerName(newName);
-            ticketDao.update(savedTicket);
+            ticketDao.update(ticketId, savedTicket);
 
             Optional<Ticket> optionalTicket = ticketDao.findById(ticketId);
             assertNotNull(optionalTicket);
@@ -184,6 +197,146 @@ class FlightDatabaseTest {
                     .flightId(8L)
                     .seatNo("B1")
                     .cost(1200)
+                    .build();
+        }
+    }
+
+    @Nested
+    class AirportDaoTest {
+        @Test
+        public void saveAndDeleteAirport() {
+            Airport expected = generateAirport();
+            Airport save = airportDao.save(expected);
+            String code = save.getCode();
+
+            Airport actual = airportDao.findById(code).get();
+            assertEquals(expected, actual);
+
+            boolean deleted = airportDao.delete(code);
+            assertTrue(deleted);
+
+            List<Airport> airports = airportDao.findAll();
+            assertEquals(4, airports.size());
+        }
+
+        @Test
+        public void updateTicket() {
+            Airport airport = airportDao.save(generateAirport());
+
+            String code = airport.getCode();
+            airport.setCountry("China");
+            airport.setCity("AAA");
+
+            boolean isUpdated = airportDao.update(code, airport);
+            assertTrue(isUpdated);
+
+            Airport editedAirport = airportDao.findById(code).get();
+
+            assertEquals("China", editedAirport.getCountry());
+            assertEquals("AAA", editedAirport.getCity());
+
+            Airport airportByCode = airportDao.findById(code).get();
+            assertEquals(editedAirport, airportByCode);
+        }
+
+        @Test
+        public void findAll() {
+            List<Airport> airports = airportDao.findAll();
+            assertEquals(4, airports.size());
+        }
+
+        private static Airport generateAirport() {
+            return Airport.builder()
+                    .code("OMS")
+                    .country("Russia")
+                    .city("Omsk")
+                    .build();
+        }
+    }
+
+    @Nested
+    class SeatDaoTest {
+        @Test
+        public void saveAndDeleteSeat() {
+            Seat seat = seatDao.save(generateSeat());
+
+            Seat seatById = seatDao.findById(seat).get();
+            assertEquals(seat, seatById);
+
+            boolean deleted = seatDao.delete(seatById);
+            assertTrue(deleted);
+
+            List<Seat> seats = seatDao.findAll();
+            assertEquals(32, seats.size());
+        }
+
+        @Test
+        public void updateSeat() {
+            Seat updatingSeat = seatDao.save(generateSeat());
+
+            Seat seatWithUpdatingInfo = generateSeat();
+            seatWithUpdatingInfo.setSeatNo("C5");
+
+            seatDao.update(updatingSeat, seatWithUpdatingInfo);
+
+            Seat updatedSeat = seatDao.findById(seatWithUpdatingInfo).get();
+            assertEquals(seatWithUpdatingInfo, updatedSeat);
+        }
+
+        @Test
+        public void findAll() {
+            List<Airport> airports = airportDao.findAll();
+            assertEquals(4, airports.size());
+        }
+
+        private static Seat generateSeat() {
+            return Seat.builder()
+                    .aircraftId(2)
+                    .seatNo("C4")
+                    .build();
+        }
+    }
+
+    @Nested
+    class AircraftDaoTest {
+        @Test
+        public void saveAndDeleteAircraft() {
+            Aircraft aircraft = generateAircraft();
+            Aircraft savedAircraft = aircraftDao.save(aircraft);
+            Integer id = savedAircraft.getId();
+
+            Aircraft aircraftById = aircraftDao.findById(id).get();
+
+            assertEquals(savedAircraft, aircraftById);
+
+            boolean isDeleted = aircraftDao.delete(id);
+            assertTrue(isDeleted);
+
+            List<Aircraft> seats = aircraftDao.findAll();
+            assertEquals(4, seats.size());
+        }
+
+        @Test
+        public void updateAircraft() {
+            Aircraft aircraft = aircraftDao.save(generateAircraft());
+            Integer id = aircraft.getId();
+
+            aircraft.setModel("another model");
+            aircraftDao.update(id, aircraft);
+
+            Aircraft aircraftById = aircraftDao.findById(id).get();
+            assertEquals(aircraft, aircraftById);
+        }
+
+        @Test
+        public void findAll() {
+            List<Aircraft> aircrafts = aircraftDao.findAll();
+            assertEquals(4, aircrafts.size());
+        }
+
+        private static Aircraft generateAircraft() {
+            return Aircraft.builder()
+                    .model("super model")
                     .build();
         }
     }
