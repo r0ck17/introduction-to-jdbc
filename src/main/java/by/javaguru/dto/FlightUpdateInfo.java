@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Builder
 @Getter
-public class FlightUpdateInfo { // TODO: change to record
+public class FlightUpdateInfo {
     String flightNo;
     Long aircraftId;
     String status;

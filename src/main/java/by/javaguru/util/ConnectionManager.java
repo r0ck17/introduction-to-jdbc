@@ -19,6 +19,7 @@ public class ConnectionManager {
     public static Connection open() {
         try {
             if (connection == null) {
+                logger.info("Trying to open new connection.");
                 synchronized (ConnectionManager.class) {
                     if (connection == null) {
                         connection = DriverManager.getConnection(
@@ -26,7 +27,7 @@ public class ConnectionManager {
                                 PropertiesUtil.get(USERNAME_KEY),
                                 PropertiesUtil.get(PASSWORD_KEY));
                         connection.setSchema("flights");
-                        logger.info("Connection opened. Schema: {}", connection.getSchema());
+                        logger.info("Connection to database was opened. Schema: {}", connection.getSchema());
                     }
                 }
             }
@@ -38,6 +39,7 @@ public class ConnectionManager {
 
     public static void close() {
         try {
+            logger.info("Trying to close connection.");
             connection.close();
             logger.info("Connection closed");
         } catch (SQLException e) {

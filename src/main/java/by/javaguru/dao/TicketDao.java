@@ -81,7 +81,8 @@ public class TicketDao implements Dao<Long, Ticket> {
 
     @Override
     public Ticket save(Ticket ticket) {
-        try (PreparedStatement statement = connection.prepareStatement(INSERT_SQL, Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement statement = connection.prepareStatement(INSERT_SQL,
+                Statement.RETURN_GENERATED_KEYS)) {
             logger.info("Saving ticket to database");
             logger.debug("{}", ticket);
 
@@ -95,11 +96,12 @@ public class TicketDao implements Dao<Long, Ticket> {
             ResultSet generatedKeys = statement.getGeneratedKeys();
 
             if (generatedKeys.next()) {
-                logger.info("Saving ticket now have ID {}", generatedKeys.getLong(1));
+                logger.info("Ticket was saved. Ticket ID = {}", generatedKeys.getLong(1));
                 ticket.setId(generatedKeys.getLong(1));
+                return ticket;
             }
 
-            return ticket;
+            return null;
         } catch (SQLException e) {
             throw new DaoException(e);
         }
@@ -117,7 +119,7 @@ public class TicketDao implements Dao<Long, Ticket> {
             statement.setInt(5, ticket.getCost());
             statement.setLong(6, ticket.getId());
 
-            logger.debug("{}", ticket);
+            logger.debug("Ticket with ID {} after updating {}", ticket.getId(), ticket);
 
             return statement.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -214,17 +216,17 @@ public class TicketDao implements Dao<Long, Ticket> {
                 .stream().map(e -> e.getKey() + " = " + e.getValue())
                 .collect(Collectors.joining(" AND "));
 
-        try (PreparedStatement statement = connection.prepareStatement(FILTERED_UPDATE_SQL.formatted(setSql, whereSql))) {
-            int i = statement.executeUpdate();
-            return i;
+        try (PreparedStatement statement = connection.prepareStatement(
+                FILTERED_UPDATE_SQL.formatted(setSql, whereSql))) {
+            return statement.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
-    // TODO: refactor with TicketFilter
     public List<Ticket> findTicketsByFlightId(Long flightId) {
-        try (PreparedStatement statement = connection.prepareStatement(FIND_BY_FLIGHT_ID_SQL)) {
+        try (PreparedStatement statement =
+                     connection.prepareStatement(FIND_BY_FLIGHT_ID_SQL)) {
             logger.info("Starting to find all tickets with flight_id = {}", flightId);
             List<Ticket> tickets = new ArrayList<>();
             statement.setLong(1, flightId);
@@ -233,8 +235,8 @@ public class TicketDao implements Dao<Long, Ticket> {
             while (result.next()) {
                 tickets.add(readTicket(result));
             }
-            logger.debug("Found {} tickets", tickets.size());
 
+            logger.debug("Found {} tickets", tickets.size());
             return tickets;
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -243,7 +245,8 @@ public class TicketDao implements Dao<Long, Ticket> {
 
 
     public List<String> findMostCommonNames(int limit) {
-        try (PreparedStatement statement = connection.prepareStatement(COMMON_NAMES_SQL)) {
+        try (PreparedStatement statement =
+                     connection.prepareStatement(COMMON_NAMES_SQL)) {
             logger.info("Finding first {} most common names", limit);
 
             List<String> names = new ArrayList<>();

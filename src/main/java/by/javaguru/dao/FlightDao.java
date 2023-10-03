@@ -30,7 +30,8 @@ public class FlightDao implements Dao<Long, Flight> {
     private static final Connection connection = ConnectionManager.open();
     private static final Logger logger = LoggerFactory.getLogger(FlightDao.class);
     private static final String INSERT_SQL = """
-            INSERT INTO flight (flight_no, departure_date, departure_airport_code, arrival_date, arrival_airport_code, aircraft_id, status)
+            INSERT INTO flight (flight_no, departure_date, departure_airport_code,
+             arrival_date, arrival_airport_code, aircraft_id, status)
             VALUES (?, ?, ?, ?, ?, ?, ?)
             """;
 
@@ -53,17 +54,18 @@ public class FlightDao implements Dao<Long, Flight> {
             """;
 
     private static final String FIND_ALL_SQL = """
-            SELECT id, flight_no, departure_date, departure_airport_code, arrival_date, arrival_airport_code, aircraft_id, status
+            SELECT id, flight_no, departure_date, departure_airport_code, arrival_date,
+             arrival_airport_code, aircraft_id, status
             FROM flight
             """;
     private static final String FIND_BY_ID_SQL =
             FIND_ALL_SQL + "WHERE ID = ?";
 
-    private static final String CHANGE_ID_SQL = """
+    private static final String FILTERED_UPDATE_SQL = """
             UPDATE flight
-            SET id = ?
+            SET %s
             WHERE id = ?
-            """;
+             """;
 
     private FlightDao() {
     }
@@ -78,13 +80,7 @@ public class FlightDao implements Dao<Long, Flight> {
             logger.info("Saving flight to database");
             logger.debug("{}", flight);
 
-            statement.setString(1, flight.getFlightNo());
-            statement.setTimestamp(2, Timestamp.valueOf(flight.getDepartureDate()));
-            statement.setString(3, flight.getDepartureAirportCode());
-            statement.setTimestamp(4, Timestamp.valueOf(flight.getArrivalDate()));
-            statement.setString(5, flight.getArrivalAirportCode());
-            statement.setLong(6, flight.getAircraftId());
-            statement.setString(7, flight.getStatus());
+            setStatementParameters(statement, flight);
 
             statement.executeUpdate();
             ResultSet generatedKeys = statement.getGeneratedKeys();
@@ -104,13 +100,8 @@ public class FlightDao implements Dao<Long, Flight> {
         try (PreparedStatement statement = connection.prepareStatement(UPDATE_SQL)) {
             logger.info("Updating flight with ID {}", flight.getId());
 
-            statement.setString(1, flight.getFlightNo());
-            statement.setTimestamp(2, Timestamp.valueOf(flight.getDepartureDate()));
-            statement.setString(3, flight.getDepartureAirportCode());
-            statement.setTimestamp(4, Timestamp.valueOf(flight.getArrivalDate()));
-            statement.setString(5, flight.getArrivalAirportCode());
-            statement.setLong(6, flight.getAircraftId());
-            statement.setString(7, flight.getStatus());
+            setStatementParameters(statement, flight);
+
             statement.setLong(8, flight.getId());
 
             logger.debug("{}", flight);
@@ -171,26 +162,8 @@ public class FlightDao implements Dao<Long, Flight> {
         }
     }
 
-    private static final String FILTERED_UPDATE_SQL = """
-           UPDATE flight
-           SET %s
-           WHERE id = ?
-            """;
-
     public boolean updateDataByFlightId(Long id, FlightUpdateInfo flightInfo, TicketUpdateInfo ticketInfo) {
-        Map<String, Object> parameters = new HashMap<>();
-
-        if (flightInfo.getFlightNo() != null) {
-            parameters.put("flight_no", "'" + flightInfo.getFlightNo() + "'");
-        }
-
-        if (flightInfo.getAircraftId() != null) {
-            parameters.put("aircraft_id", flightInfo.getAircraftId());
-        }
-
-        if (flightInfo.getStatus() != null) {
-            parameters.put("status", "'" + flightInfo.getStatus()+ "'");
-        }
+        Map<String, Object> parameters = getFlightInfoParam(flightInfo);
 
         String setSql = parameters.entrySet().stream()
                 .map(e -> format("%s = %s", e.getKey(), e.getValue()))
@@ -216,6 +189,32 @@ public class FlightDao implements Dao<Long, Flight> {
             }
             throw new DaoException(e);
         }
+    }
+
+    private Map<String, Object> getFlightInfoParam(FlightUpdateInfo flightInfo) {
+        Map<String, Object> parameters = new HashMap<>();
+
+        if (flightInfo.getFlightNo() != null) {
+            parameters.put("flight_no", "'" + flightInfo.getFlightNo() + "'");
+        }
+        if (flightInfo.getAircraftId() != null) {
+            parameters.put("aircraft_id", flightInfo.getAircraftId());
+        }
+        if (flightInfo.getStatus() != null) {
+            parameters.put("status", "'" + flightInfo.getStatus() + "'");
+        }
+
+        return parameters;
+    }
+
+    private void setStatementParameters(PreparedStatement statement, Flight flight) throws SQLException {
+        statement.setString(1, flight.getFlightNo());
+        statement.setTimestamp(2, Timestamp.valueOf(flight.getDepartureDate()));
+        statement.setString(3, flight.getDepartureAirportCode());
+        statement.setTimestamp(4, Timestamp.valueOf(flight.getArrivalDate()));
+        statement.setString(5, flight.getArrivalAirportCode());
+        statement.setLong(6, flight.getAircraftId());
+        statement.setString(7, flight.getStatus());
     }
 
     private static Flight readFlight(ResultSet result) throws SQLException {

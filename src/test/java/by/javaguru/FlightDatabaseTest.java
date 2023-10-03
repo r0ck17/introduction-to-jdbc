@@ -8,7 +8,11 @@ import by.javaguru.entity.Flight;
 import by.javaguru.entity.Ticket;
 import by.javaguru.util.ConnectionManager;
 import by.javaguru.util.SQLScriptRunner;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
 import java.sql.Connection;
@@ -17,7 +21,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class FlightDatabaseTest {
     private static TicketDao ticketDao;
@@ -80,18 +86,6 @@ class FlightDatabaseTest {
             List<Flight> tickets = flightDao.findAll();
             assertEquals(9, tickets.size());
         }
-
-//        @Test
-//        public void updateFlightId() {
-//            Flight flight = flightDao.save(generateFlight());
-//            long newId = 100L;
-//            boolean isUpdated = flightDao.updateFlightId(flight, newId);
-//
-//            assertTrue(isUpdated);
-//
-//            Optional<Flight> flightWithNewId = flightDao.findById(newId);
-//            assertEquals(flight, flightWithNewId);
-//        }
 
         @Test
         public void updateDataByFlightId() {
