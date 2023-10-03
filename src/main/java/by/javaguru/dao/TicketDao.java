@@ -25,17 +25,14 @@ public class TicketDao implements Dao<Long, Ticket> {
     private static final TicketDao INSTANCE = new TicketDao();
     private static final Connection connection = ConnectionManager.open();
     private static final Logger logger = LoggerFactory.getLogger(TicketDao.class);
-
     private static final String INSERT_SQL = """
             INSERT INTO ticket (passport_no, passenger_name, flight_id, seat_no, cost)
             VALUES (?, ?, ?, ?, ?)
             """;
-
     private static final String DELETE_SQL = """
             DELETE FROM ticket
             WHERE id = ?
             """;
-
     private static final String UPDATE_SQL = """
             UPDATE ticket
             SET
@@ -46,7 +43,6 @@ public class TicketDao implements Dao<Long, Ticket> {
                 cost = ?
             WHERE id = ?
             """;
-
     private static final String COMMON_NAMES_SQL = """
             SELECT split_part(passenger_name, ' ', 1) AS name,  count(*) AS count
             FROM ticket
@@ -54,17 +50,20 @@ public class TicketDao implements Dao<Long, Ticket> {
             ORDER BY count DESC, name
             LIMIT ?
             """;
-
     private static final String COUNT_TICKETS_SQL = """
             SELECT passenger_name, count(*) AS ticket_count
             FROM ticket
             GROUP BY passport_no, passenger_name
             ORDER BY ticket_count DESC;
             """;
-
     private static final String FIND_ALL_SQL = """
             SELECT id, passport_no, passenger_name, flight_id, seat_no, cost
             FROM ticket
+            """;
+    private static final String FILTERED_UPDATE_SQL = """
+            UPDATE ticket
+            SET %s
+            WHERE %s
             """;
     private static final String FIND_BY_ID_SQL =
             FIND_ALL_SQL + "WHERE ID = ?";
@@ -176,12 +175,6 @@ public class TicketDao implements Dao<Long, Ticket> {
             throw new DaoException(e);
         }
     }
-
-    private static final String FILTERED_UPDATE_SQL = """
-            UPDATE ticket
-            SET %s
-            WHERE %s
-            """;
 
     public int updateTickets(TicketFilter ticketFilter, TicketUpdateInfo updateInfo) {
         Map<String, Object> whereParams = new HashMap<>();
