@@ -107,18 +107,18 @@ public class TicketDao implements Dao<Long, Ticket> {
     }
 
     @Override
-    public boolean update(Ticket ticket) {
+    public boolean update(Long id, Ticket ticket) {
         try (PreparedStatement statement = connection.prepareStatement(UPDATE_SQL)) {
-            logger.info("Updating ticket with ID {}", ticket.getId());
+            logger.info("Updating ticket with ID {}", id);
 
             statement.setString(1, ticket.getSeatNo());
             statement.setString(2, ticket.getPassengerName());
             statement.setLong(3, ticket.getFlightId());
             statement.setString(4, ticket.getSeatNo());
             statement.setInt(5, ticket.getCost());
-            statement.setLong(6, ticket.getId());
+            statement.setLong(6, id);
 
-            logger.debug("Ticket with ID {} after updating {}", ticket.getId(), ticket);
+            logger.debug("Ticket with ID {} after updating {}", id, ticket);
 
             return statement.executeUpdate() > 0;
         } catch (SQLException e) {

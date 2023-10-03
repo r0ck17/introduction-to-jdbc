@@ -96,13 +96,13 @@ public class FlightDao implements Dao<Long, Flight> {
     }
 
     @Override
-    public boolean update(Flight flight) {
+    public boolean update(Long id, Flight flight) {
         try (PreparedStatement statement = connection.prepareStatement(UPDATE_SQL)) {
-            logger.info("Updating flight with ID {}", flight.getId());
+            logger.info("Updating flight with ID {}", id);
 
             setStatementParameters(statement, flight);
 
-            statement.setLong(8, flight.getId());
+            statement.setLong(8, id);
 
             logger.debug("{}", flight);
 

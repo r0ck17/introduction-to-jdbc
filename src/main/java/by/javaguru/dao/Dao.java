@@ -5,7 +5,7 @@ import java.util.Optional;
 
 public interface Dao <K, E> {
     E save(E entity);
-    boolean update(E id);
+    boolean update(K key, E entity);
     boolean delete(K id);
     Optional<E> findById(K id);
     List<E> findAll();
