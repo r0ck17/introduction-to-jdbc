@@ -3,7 +3,7 @@ package by.javaguru.dao;
 import java.util.List;
 import java.util.Optional;
 
-public interface Dao <K, E> {
+public interface Dao<K, E> {
     E save(E entity);
     boolean update(K key, E entity);
     boolean delete(K id);

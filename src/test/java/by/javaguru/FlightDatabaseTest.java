@@ -1,10 +1,15 @@
 package by.javaguru;
 
 import by.javaguru.dao.AircraftDao;
+import by.javaguru.dao.jdbc.AircraftDaoJsonImpl;
 import by.javaguru.dao.AirportDao;
+import by.javaguru.dao.jdbc.AirportDaoJsonImpl;
 import by.javaguru.dao.FlightDao;
+import by.javaguru.dao.jdbc.FlightDaoJsonImpl;
 import by.javaguru.dao.SeatDao;
+import by.javaguru.dao.jdbc.SeatDaoJsonImpl;
 import by.javaguru.dao.TicketDao;
+import by.javaguru.dao.jdbc.TicketDaoJsonImpl;
 import by.javaguru.dto.FlightUpdateInfo;
 import by.javaguru.dto.TicketUpdateInfo;
 import by.javaguru.entity.Aircraft;
@@ -41,11 +46,11 @@ class FlightDatabaseTest {
 
     @BeforeEach
     public void init() throws Exception {
-        ticketDao = TicketDao.getInstance();
-        flightDao = FlightDao.getInstance();
-        airportDao = AirportDao.getInstance();
-        seatDao = SeatDao.getInstance();
-        aircraftDao = AircraftDao.getInstance();
+        ticketDao = TicketDaoJsonImpl.getInstance();
+        flightDao = FlightDaoJsonImpl.getInstance();
+        airportDao = AirportDaoJsonImpl.getInstance();
+        seatDao = SeatDaoJsonImpl.getInstance();
+        aircraftDao = AircraftDaoJsonImpl.getInstance();
 
         Path path = Path.of("src", "test", "resources", "create-database.sql").toAbsolutePath();
         SQLScriptRunner.execute(path.toString(), connection);
