@@ -69,12 +69,13 @@ class FlightDatabaseTest {
     @AfterAll
     public static void closeConnection() {
         ConnectionManager.close();
+        ConnectionManager.closeSessionFactory();
     }
 
     @Nested
     class FlightDaoTest {
         @Test
-        public void saveAndDeleteTicket() {
+         void saveAndDeleteTicket() {
             Flight savedFlight = flightDao.save(generateFlight());
             Long id = savedFlight.getId();
 
@@ -83,7 +84,7 @@ class FlightDatabaseTest {
         }
 
         @Test
-        public void updateTicket() {
+         void updateTicket() {
             Flight savedFlight = flightDao.save(generateFlight());
             long flightId = savedFlight.getId();
 
@@ -103,7 +104,7 @@ class FlightDatabaseTest {
         }
 
         @Test
-        public void findAll() {
+         void findAll() {
             List<Flight> tickets = flightDao.findAll();
             assertEquals(9, tickets.size());
         }
@@ -124,7 +125,7 @@ class FlightDatabaseTest {
     @Nested
     class TicketDaoTest {
         @Test
-        public void saveAndDeleteTicket() {
+         void saveAndDeleteTicket() {
             Ticket savedTicket = ticketDao.save(generateTicket());
             Long id = savedTicket.getId();
             assertNotNull(id);
@@ -132,7 +133,7 @@ class FlightDatabaseTest {
         }
 
         @Test
-        public void updateTicket() {
+         void updateTicket() {
             Ticket savedTicket = ticketDao.save(generateTicket());
             long ticketId = savedTicket.getId();
 
@@ -152,7 +153,7 @@ class FlightDatabaseTest {
         }
 
         @Test
-        public void findAll() {
+         void findAll() {
             List<Ticket> tickets = ticketDao.findAll();
             assertEquals(55, tickets.size());
         }
@@ -171,7 +172,7 @@ class FlightDatabaseTest {
     @Nested
     class AirportDaoTest {
         @Test
-        public void saveAndDeleteAirport() {
+         void saveAndDeleteAirport() {
             Airport expected = generateAirport();
             Airport save = airportDao.save(expected);
             String code = save.getCode();
@@ -187,7 +188,7 @@ class FlightDatabaseTest {
         }
 
         @Test
-        public void updateAirport() {
+         void updateAirport() {
             Airport airport = airportDao.save(generateAirport());
 
             String code = airport.getCode();
@@ -207,7 +208,7 @@ class FlightDatabaseTest {
         }
 
         @Test
-        public void findAll() {
+         void findAll() {
             List<Airport> airports = airportDao.findAll();
             assertEquals(4, airports.size());
         }
@@ -224,7 +225,7 @@ class FlightDatabaseTest {
     @Nested
     class SeatDaoTest {
         @Test
-        public void saveAndDeleteSeat() {
+        void saveAndDeleteSeat() {
             Seat seat = seatDao.save(generateSeat());
 
             Seat seatById = seatDao.findById(seat).get();
@@ -238,7 +239,7 @@ class FlightDatabaseTest {
         }
 
         @Test
-        public void updateSeat() {
+         void updateSeat() {
             Seat updatingSeat = seatDao.save(generateSeat());
 
             Seat seatWithUpdatingInfo = generateSeat();
@@ -251,7 +252,7 @@ class FlightDatabaseTest {
         }
 
         @Test
-        public void findAll() {
+         void findAll() {
             List<Airport> airports = airportDao.findAll();
             assertEquals(4, airports.size());
         }
@@ -268,7 +269,7 @@ class FlightDatabaseTest {
     @Nested
     class AircraftDaoTest {
         @Test
-        public void saveAndDeleteAircraft() {
+         void saveAndDeleteAircraft() {
             Aircraft aircraft = generateAircraft();
             Aircraft savedAircraft = aircraftDao.save(aircraft);
             Integer id = savedAircraft.getId();
@@ -285,7 +286,7 @@ class FlightDatabaseTest {
         }
 
         @Test
-        public void updateAircraft() {
+         void updateAircraft() {
             Aircraft aircraft = aircraftDao.save(generateAircraft());
             Integer id = aircraft.getId();
 
@@ -297,7 +298,7 @@ class FlightDatabaseTest {
         }
 
         @Test
-        public void findAll() {
+         void findAll() {
             List<Aircraft> aircrafts = aircraftDao.findAll();
             assertEquals(4, aircrafts.size());
         }
