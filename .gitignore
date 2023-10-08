@@ -1,3 +1,4 @@
 .idea/
 target/
-introduction-to-jdbc.iml
+logs/
+*.iml
