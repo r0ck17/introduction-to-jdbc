@@ -111,10 +111,8 @@ public class SeatDaoJsonImpl implements SeatDao {
             Seat foundedSeat = null;
 
             if (result.next()) {
-                foundedSeat = Seat.builder()
-                        .aircraftId(result.getInt("aircraft_id"))
-                        .seatNo(result.getString("seat_no"))
-                        .build();
+                foundedSeat.setSeatNo(result.getString("seat_no"));
+                foundedSeat.setAircraftId(result.getInt("aircraft_id"));
             }
             logger.debug("{}", foundedSeat);
 
@@ -133,10 +131,10 @@ public class SeatDaoJsonImpl implements SeatDao {
             ResultSet result = statement.executeQuery(FIND_ALL_SQL);
 
             while (result.next()) {
-                seats.add(Seat.builder()
-                        .aircraftId(result.getInt("aircraft_id"))
-                        .seatNo(result.getString("seat_no"))
-                        .build());
+                Seat foundSeat = new Seat();
+                foundSeat.setSeatNo(result.getString("seat_no"));
+                foundSeat.setAircraftId(result.getInt("aircraft_id"));
+                seats.add(foundSeat);
             }
 
             logger.debug("Found {} seats", seats.size());

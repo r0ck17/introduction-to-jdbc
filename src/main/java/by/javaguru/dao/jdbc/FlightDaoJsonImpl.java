@@ -1,9 +1,6 @@
 package by.javaguru.dao.jdbc;
 
 import by.javaguru.dao.FlightDao;
-import by.javaguru.dto.FlightUpdateInfo;
-import by.javaguru.dto.TicketFilter;
-import by.javaguru.dto.TicketUpdateInfo;
 import by.javaguru.entity.Flight;
 import by.javaguru.exception.DaoException;
 import by.javaguru.util.ConnectionManager;
@@ -17,13 +14,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static java.lang.String.*;
 
 public class FlightDaoJsonImpl implements FlightDao {
     private static final FlightDaoJsonImpl INSTANCE = new FlightDaoJsonImpl();
@@ -161,52 +153,6 @@ public class FlightDaoJsonImpl implements FlightDao {
         } catch (SQLException e) {
             throw new DaoException(e);
         }
-    }
-
-    @Override
-    public boolean updateDataByFlightId(Long id, FlightUpdateInfo flightInfo, TicketUpdateInfo ticketInfo) {
-        Map<String, Object> parameters = getFlightInfoParam(flightInfo);
-
-        String setSql = parameters.entrySet().stream()
-                .map(e -> format("%s = %s", e.getKey(), e.getValue()))
-                .collect(Collectors.joining(", "));
-
-        try (PreparedStatement statement = connection.prepareStatement(FILTERED_UPDATE_SQL.formatted(setSql))) {
-            connection.setAutoCommit(false);
-
-            statement.setLong(1, id);
-            int countRecords = statement.executeUpdate();
-
-            TicketFilter ticketFilter = TicketFilter.builder().flightId(id).build();
-
-            ticketDao.updateTickets(ticketFilter, ticketInfo);
-
-            connection.commit();
-            return countRecords > 0;
-        } catch (SQLException e) {
-            try {
-                connection.rollback();
-            } catch (SQLException ex) {
-                throw new DaoException(ex);
-            }
-            throw new DaoException(e);
-        }
-    }
-
-    private Map<String, Object> getFlightInfoParam(FlightUpdateInfo flightInfo) {
-        Map<String, Object> parameters = new HashMap<>();
-
-        if (flightInfo.getFlightNo() != null) {
-            parameters.put("flight_no", "'" + flightInfo.getFlightNo() + "'");
-        }
-        if (flightInfo.getAircraftId() != null) {
-            parameters.put("aircraft_id", flightInfo.getAircraftId());
-        }
-        if (flightInfo.getStatus() != null) {
-            parameters.put("status", "'" + flightInfo.getStatus() + "'");
-        }
-
-        return parameters;
     }
 
     private void setStatementParameters(PreparedStatement statement, Flight flight) throws SQLException {

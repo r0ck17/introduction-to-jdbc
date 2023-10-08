@@ -1,9 +1,7 @@
 package by.javaguru.dao.jdbc;
 
 import by.javaguru.dao.TicketDao;
-import by.javaguru.dto.TicketUpdateInfo;
 import by.javaguru.entity.Ticket;
-import by.javaguru.dto.TicketFilter;
 import by.javaguru.exception.DaoException;
 import by.javaguru.util.ConnectionManager;
 import org.slf4j.Logger;
@@ -15,11 +13,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 
 public class TicketDaoJsonImpl implements TicketDao {
@@ -174,110 +169,6 @@ public class TicketDaoJsonImpl implements TicketDao {
             return tickets;
         } catch (SQLException e) {
             throw new DaoException(e);
-        }
-    }
-
-    @Override
-    public int updateTickets(TicketFilter ticketFilter, TicketUpdateInfo updateInfo) {
-        Map<String, Object> whereParams = new HashMap<>();
-        Map<String, Object> setParams = new HashMap<>();
-
-        if (ticketFilter.getPassportNo() != null) {
-            whereParams.put("passport_no", "'" + ticketFilter.getPassportNo() + "'");
-        }
-
-        if (ticketFilter.getPassengerName() != null) {
-            whereParams.put("passenger_name", "'" + ticketFilter.getPassengerName() + "'");
-        }
-
-        if (ticketFilter.getFlightId() != null) {
-            whereParams.put("flight_id", ticketFilter.getFlightId());
-        }
-
-        if (ticketFilter.getSeatNo() != null) {
-            whereParams.put("seat_no", "'" + ticketFilter.getSeatNo() + "'");
-        }
-
-        if (ticketFilter.getCost() != null) {
-            whereParams.put("cost", ticketFilter.getCost());
-        }
-
-        setParams.put("cost", updateInfo.getCost());
-        String setSql = setParams.entrySet()
-                .stream().map(e -> e.getKey() + " = " + e.getValue())
-                .collect(Collectors.joining(" , "));
-
-        String whereSql = whereParams.entrySet()
-                .stream().map(e -> e.getKey() + " = " + e.getValue())
-                .collect(Collectors.joining(" AND "));
-
-        try (PreparedStatement statement = connection.prepareStatement(
-                FILTERED_UPDATE_SQL.formatted(setSql, whereSql))) {
-            return statement.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public List<Ticket> findTicketsByFlightId(Long flightId) {
-        try (PreparedStatement statement =
-                     connection.prepareStatement(FIND_BY_FLIGHT_ID_SQL)) {
-            logger.info("Starting to find all tickets with flight_id = {}", flightId);
-            List<Ticket> tickets = new ArrayList<>();
-            statement.setLong(1, flightId);
-            ResultSet result = statement.executeQuery();
-
-            while (result.next()) {
-                tickets.add(readTicket(result));
-            }
-
-            logger.debug("Found {} tickets", tickets.size());
-            return tickets;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public List<String> findMostCommonNames(int limit) {
-        try (PreparedStatement statement =
-                     connection.prepareStatement(COMMON_NAMES_SQL)) {
-            logger.info("Finding first {} most common names", limit);
-
-            List<String> names = new ArrayList<>();
-
-            statement.setInt(1, limit);
-            ResultSet resultSet = statement.executeQuery();
-
-            while (resultSet.next()) {
-                names.add(resultSet.getString("name"));
-            }
-
-            logger.debug("Found {} names", names.size());
-            return names;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public Map<String, Integer> findPassengerTotalTicketCount() {
-        try (Statement statement = connection.createStatement()) {
-            logger.info("Finding ticket counts for every user");
-
-            Map<String, Integer> tickets = new HashMap<>();
-
-            ResultSet result = statement.executeQuery(COUNT_TICKETS_SQL);
-            while (result.next()) {
-                tickets.put(result.getString("passenger_name"),
-                        result.getInt("ticket_count"));
-            }
-
-            logger.debug("Counted tickets for {} names", tickets.keySet().size());
-            return tickets;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
     }
 
