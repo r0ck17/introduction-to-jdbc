@@ -1,18 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Configuration status="WARN">
+<Configuration>
     <Appenders>
         <Console name="LogToConsole" target="SYSTEM_OUT">
             <PatternLayout pattern="%highlight{%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n}" disableAnsi="false"/>
         </Console>
+        <File name="LogToFile" fileName="logs/app.log">
+            <PatternLayout pattern="%d{yyyy-mm-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </File>
     </Appenders>
     <Loggers>
-        <!-- avoid duplicated logs with additivity=false -->
-        <Logger name="by.javaguru" level="trace" additivity="false">
+        <Logger name="by.javaguru.dao" level="debug" additivity="false">
             <AppenderRef ref="LogToConsole"/>
+            <AppenderRef ref="LogToFile"/>
         </Logger>
 
-        <Root level="error">
+        <Root level="info">
             <AppenderRef ref="LogToConsole"/>
+            <AppenderRef ref="LogToFile"/>
         </Root>
     </Loggers>
 </Configuration>

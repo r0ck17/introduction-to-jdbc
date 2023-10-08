@@ -6,6 +6,7 @@ import by.javaguru.entity.Flight;
 import by.javaguru.entity.Seat;
 import by.javaguru.entity.Ticket;
 import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy;
 import org.hibernate.cfg.Configuration;
@@ -16,6 +17,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
+@Slf4j
 @UtilityClass
 public class ConnectionManager {
     private static final Logger logger = LoggerFactory.getLogger(ConnectionManager.class);
@@ -48,6 +50,7 @@ public class ConnectionManager {
 
     public static SessionFactory getSessionFactory() {
         if (sessionFactory == null) {
+            log.info("Configure session factory");
             sessionFactory = new Configuration()
                     .configure()
                     .addAnnotatedClass(Aircraft.class)
@@ -57,18 +60,21 @@ public class ConnectionManager {
                     .addAnnotatedClass(Ticket.class)
                     .setPhysicalNamingStrategy(new CamelCaseToUnderscoresNamingStrategy())
                     .buildSessionFactory();
+            log.info("Session factory configured");
         }
 
         return sessionFactory;
     }
 
     public static void closeSessionFactory() {
+        logger.info("Trying to close session factory");
         sessionFactory.close();
+        logger.info("Session factory closed");
     }
 
     public static void close() {
         try {
-            logger.info("Trying to close connection.");
+            logger.info("Trying to close connection");
             connection.close();
             logger.info("Connection closed");
         } catch (SQLException e) {
