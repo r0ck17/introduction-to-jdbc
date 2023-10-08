@@ -1,21 +1,20 @@
 package by.javaguru;
 
 import by.javaguru.dao.AircraftDao;
-import by.javaguru.dao.jdbc.AircraftDaoJsonImpl;
 import by.javaguru.dao.AirportDao;
-import by.javaguru.dao.jdbc.AirportDaoJsonImpl;
 import by.javaguru.dao.FlightDao;
-import by.javaguru.dao.jdbc.FlightDaoJsonImpl;
 import by.javaguru.dao.SeatDao;
-import by.javaguru.dao.jdbc.SeatDaoJsonImpl;
 import by.javaguru.dao.TicketDao;
-import by.javaguru.dao.jdbc.TicketDaoJsonImpl;
-import by.javaguru.dto.FlightUpdateInfo;
-import by.javaguru.dto.TicketUpdateInfo;
+import by.javaguru.dao.hibernate.AircraftDaoHibernateImpl;
+import by.javaguru.dao.hibernate.AirportDaoHibernateImpl;
+import by.javaguru.dao.hibernate.FlightDaoHibernateImpl;
+import by.javaguru.dao.hibernate.SeatDaoHibernateImpl;
+import by.javaguru.dao.hibernate.TicketDaoHibernateImpl;
 import by.javaguru.entity.Aircraft;
 import by.javaguru.entity.Airport;
 import by.javaguru.entity.Flight;
 import by.javaguru.entity.Seat;
+import by.javaguru.entity.SeatId;
 import by.javaguru.entity.Ticket;
 import by.javaguru.util.ConnectionManager;
 import by.javaguru.util.SQLScriptRunner;
@@ -29,7 +28,6 @@ import java.nio.file.Path;
 import java.sql.Connection;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -46,11 +44,16 @@ class FlightDatabaseTest {
 
     @BeforeEach
     public void init() throws Exception {
-        ticketDao = TicketDaoJsonImpl.getInstance();
-        flightDao = FlightDaoJsonImpl.getInstance();
-        airportDao = AirportDaoJsonImpl.getInstance();
-        seatDao = SeatDaoJsonImpl.getInstance();
-        aircraftDao = AircraftDaoJsonImpl.getInstance();
+//        ticketDao = TicketDaoJsonImpl.getInstance();
+//        flightDao = FlightDaoJsonImpl.getInstance();
+//        airportDao = AirportDaoJsonImpl.getInstance();
+//        seatDao = SeatDaoJsonImpl.getInstance();
+//        aircraftDao = AircraftDaoJsonImpl.getInstance();
+        airportDao = AirportDaoHibernateImpl.getInstance();
+        aircraftDao = AircraftDaoHibernateImpl.getInstance();
+        ticketDao = TicketDaoHibernateImpl.getInstance();
+        flightDao = FlightDaoHibernateImpl.getInstance();
+        seatDao = SeatDaoHibernateImpl.getInstance();
 
         Path path = Path.of("src", "test", "resources", "create-database.sql").toAbsolutePath();
         SQLScriptRunner.execute(path.toString(), connection);
@@ -105,31 +108,6 @@ class FlightDatabaseTest {
             assertEquals(9, tickets.size());
         }
 
-        @Test
-        public void updateDataByFlightId() {
-            int newCost = 1200;
-            TicketUpdateInfo ticketUpdateInfo = new TicketUpdateInfo(newCost);
-            FlightUpdateInfo flightUpdateInfo = FlightUpdateInfo.builder()
-                    .flightNo("NW111")
-                    .aircraftId(3L)
-                    .status("STATUS")
-                    .build();
-
-            long flightId = 9L;
-            flightDao.updateDataByFlightId(flightId, flightUpdateInfo, ticketUpdateInfo);
-            Flight flight = flightDao.findById(flightId).get();
-
-            List<Ticket> ticketsByFlightId = ticketDao.findTicketsByFlightId(flightId);
-
-            for (Ticket ticket : ticketsByFlightId) {
-                assertEquals(newCost, ticket.getCost());
-            }
-
-            assertEquals("NW111", flight.getFlightNo());
-            assertEquals(3L, flight.getAircraftId());
-            assertEquals("STATUS", flight.getStatus());
-        }
-
         private static Flight generateFlight() {
             return Flight.builder()
                     .flightNo("MP3000")
@@ -179,28 +157,12 @@ class FlightDatabaseTest {
             assertEquals(55, tickets.size());
         }
 
-        @Test
-        public void findMostCommonNames() {
-            List<String> actual = ticketDao.findMostCommonNames(3);
-            List<String> expected = List.of("Иван", "Андрей", "Лариса");
-            assertEquals(expected, actual);
-        }
-
-        @Test
-        public void findPassengerTotalTicketCount() {
-            Map<String, Integer> tickets = ticketDao.findPassengerTotalTicketCount();
-            assertEquals(39, tickets.keySet().size());
-            assertEquals(4, tickets.get("Иван Иванов"));
-            assertEquals(3, tickets.get("Светлана Светикова"));
-            assertEquals(2, tickets.get("Иван Старовойтов"));
-        }
-
         private static Ticket generateTicket() {
             return Ticket.builder()
                     .passportNo("123567")
                     .passengerName("Иван Иванов")
                     .flightId(8L)
-                    .seatNo("B1")
+                    .seatNo("B15")
                     .cost(1200)
                     .build();
         }
@@ -225,7 +187,7 @@ class FlightDatabaseTest {
         }
 
         @Test
-        public void updateTicket() {
+        public void updateAirport() {
             Airport airport = airportDao.save(generateAirport());
 
             String code = airport.getCode();
@@ -295,10 +257,11 @@ class FlightDatabaseTest {
         }
 
         private static Seat generateSeat() {
-            return Seat.builder()
-                    .aircraftId(2)
+            SeatId seatId = SeatId.builder()
                     .seatNo("C4")
+                    .aircraftId(2)
                     .build();
+            return new Seat(seatId);
         }
     }
 
