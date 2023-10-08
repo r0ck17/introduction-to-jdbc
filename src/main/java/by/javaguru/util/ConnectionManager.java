@@ -1,6 +1,14 @@
 package by.javaguru.util;
 
+import by.javaguru.entity.Aircraft;
+import by.javaguru.entity.Airport;
+import by.javaguru.entity.Flight;
+import by.javaguru.entity.Seat;
+import by.javaguru.entity.Ticket;
 import lombok.experimental.UtilityClass;
+import org.hibernate.SessionFactory;
+import org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy;
+import org.hibernate.cfg.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,6 +23,7 @@ public class ConnectionManager {
     private static final String USERNAME_KEY = "db.username";
     private static final String PASSWORD_KEY = "db.password";
     private static volatile Connection connection;
+    private static SessionFactory sessionFactory;
 
     public static Connection open() {
         try {
@@ -35,6 +44,26 @@ public class ConnectionManager {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static SessionFactory getSessionFactory() {
+        if (sessionFactory == null) {
+            sessionFactory = new Configuration()
+                    .configure()
+                    .addAnnotatedClass(Aircraft.class)
+                    .addAnnotatedClass(Airport.class)
+                    .addAnnotatedClass(Flight.class)
+                    .addAnnotatedClass(Seat.class)
+                    .addAnnotatedClass(Ticket.class)
+                    .setPhysicalNamingStrategy(new CamelCaseToUnderscoresNamingStrategy())
+                    .buildSessionFactory();
+        }
+
+        return sessionFactory;
+    }
+
+    public static void closeSessionFactory() {
+        sessionFactory.close();
     }
 
     public static void close() {
