@@ -9,8 +9,6 @@
         <property name="connection.username">postgres</property>
         <property name="connection.password">groot</property>
 
-<!--        <property name="default_schema">flights</property>-->
-<!--        Для работы тестов-->
         <property name="default_schema">flights_test</property>
         <property name="hibernate.current_session_context_class">thread</property>
 
