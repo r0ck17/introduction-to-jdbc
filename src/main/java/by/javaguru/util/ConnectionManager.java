@@ -10,8 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy;
 import org.hibernate.cfg.Configuration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -20,7 +18,6 @@ import java.sql.SQLException;
 @Slf4j
 @UtilityClass
 public class ConnectionManager {
-    private static final Logger logger = LoggerFactory.getLogger(ConnectionManager.class);
     private static final String URL_KEY = "db.url";
     private static final String USERNAME_KEY = "db.username";
     private static final String PASSWORD_KEY = "db.password";
@@ -30,7 +27,7 @@ public class ConnectionManager {
     public static Connection open() {
         try {
             if (connection == null) {
-                logger.info("Trying to open new connection.");
+                log.info("Trying to open new connection.");
                 synchronized (ConnectionManager.class) {
                     if (connection == null) {
                         connection = DriverManager.getConnection(
@@ -38,7 +35,7 @@ public class ConnectionManager {
                                 PropertiesUtil.get(USERNAME_KEY),
                                 PropertiesUtil.get(PASSWORD_KEY));
                         connection.setSchema("flights");
-                        logger.info("Connection to database was opened. Schema: {}", connection.getSchema());
+                        log.info("Connection to database was opened. Schema: {}", connection.getSchema());
                     }
                 }
             }
@@ -67,16 +64,16 @@ public class ConnectionManager {
     }
 
     public static void closeSessionFactory() {
-        logger.info("Trying to close session factory");
+        log.info("Trying to close session factory");
         sessionFactory.close();
-        logger.info("Session factory closed");
+        log.info("Session factory closed");
     }
 
     public static void close() {
         try {
-            logger.info("Trying to close connection");
+            log.info("Trying to close connection");
             connection.close();
-            logger.info("Connection closed");
+            log.info("Connection closed");
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
