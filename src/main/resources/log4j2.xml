@@ -2,10 +2,10 @@
 <Configuration>
     <Appenders>
         <Console name="LogToConsole" target="SYSTEM_OUT">
-            <PatternLayout pattern="%highlight{%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n}" disableAnsi="false"/>
+            <PatternLayout pattern="%highlight{%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} %M - %msg%n}" disableAnsi="false"/>
         </Console>
         <File name="LogToFile" fileName="logs/app.log">
-            <PatternLayout pattern="%d{yyyy-mm-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+            <PatternLayout pattern="%d{yyyy-mm-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} %M - %msg%n"/>
         </File>
     </Appenders>
     <Loggers>
